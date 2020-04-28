@@ -1,0 +1,8 @@
+from pyspark.sql import SparkSession
+from pyspark.conf import SparkConf
+from pyspark_llap import HiveWarehouseSession
+settings = [('spark.sql.hive.hiveserver2.jdbc.url',   <hive interactive jdbc connection >),]
+conf = SparkConf().setAppName("Pyspark and Hive!").setAll(settings)
+spark = (SparkSession.builder.config(conf=conf).master('yarn').enableHiveSupport().getOrCreate() )
+hive = HiveWarehouseSession.session(spark).build()
+df = hive.executeQuery("SELECT * from hivetable")
