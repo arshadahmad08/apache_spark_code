@@ -15,9 +15,9 @@ cosmosconfig = {
 "Endpoint" : "<your_uri>",
 "Masterkey" : "<your_key>",
 "Database" : "<cosmosdb>",
-"preferredRegions" : "South Central US;North Central US",
+"preferredRegions" : "<your azure region>",
 "Collection" : "<collection_name>",
-"query_custom" : "SELECT * FROM c"
+"query_custom" : "select * from c"
 }
 
 
