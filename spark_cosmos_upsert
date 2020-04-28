@@ -15,9 +15,9 @@ cosmosconfig = {
 "Endpoint" : "<your_uri>",
 "Masterkey" : "<your_key>",
 "Database" : "<cosmosdb>",
-"preferredRegions" : "South Central US;North Central US",
+"preferredRegions" : "<your azure region>",
 "Collection" : "<collection_name>",
-"query_custom" : "SELECT * FROM c"
+"query_custom" : "select * from c"
 }
 
 
@@ -28,7 +28,7 @@ cosmos_df.createOrReplaceTempView("cosmos")
 
 #-------------connection from mysql --------------------------
 
-query = """(select * from database.table) as mysql-data"""
+query = """(select * from database.table) as mysql_data"""
 url = "jdbc:mysql://<server>:3306/<database>?useSSL=true&requireSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
 mprop = { "user": "<username>","password": "<password>","driver" : "com.mysql.cj.jdbc.Driver"}
 mysql_df = spark.read.jdbc(url,query,None,None,None,None,None,mprop)
