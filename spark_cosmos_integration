@@ -1,0 +1,54 @@
+
+#---------------spark settings -------------------------
+
+%spark2.pyspark
+from os.path import expanduser, join, abspath
+from pyspark import SparkContext, SparkConf
+from pyspark.sql import SparkSession, HiveContext
+from pyspark.sql import Row
+spark = SparkSession.builder.appName("cosmos_upsert_poc").enableHiveSupport().getOrCreate()
+
+
+#--------------Connection from cosmos db ---------------------
+# Base Configuration
+cosmosconfig = {
+"Endpoint" : "<your_uri>",
+"Masterkey" : "<your_key>",
+"Database" : "<cosmosdb>",
+"preferredRegions" : "South Central US;North Central US",
+"Collection" : "<collection_name>",
+"query_custom" : "SELECT * FROM c"
+}
+
+
+# Connect via Spark connector to create Spark DataFrame
+cosmos_df = spark.read.format("com.microsoft.azure.cosmosdb.spark").options(**cosmosconfig).load()
+cosmos_df.createOrReplaceTempView("cosmos")
+
+
+#-------------connection from mysql --------------------------
+
+query = """(select * from database.table) as mysql-data"""
+url = "jdbc:mysql://<server>:3306/<database>?useSSL=true&requireSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+mprop = { "user": "<username>","password": "<password>","driver" : "com.mysql.cj.jdbc.Driver"}
+mysql_df = spark.read.jdbc(url,query,None,None,None,None,None,mprop)
+mysql_df.createOrReplaceTempView("mysql")
+
+
+#-----------Lookup between two dataframes ----------------------
+lookup_df = spark.sql("select * from cosmos c join mysql m on c.id = m.id")
+
+#-----------------write data to cosmos :-------------------
+# Write configuration
+writeConfig = {
+    "Endpoint": "<uri>",
+    "Masterkey": "<key>",
+    "Database": "<cosmosdb>",
+    "Collection": "<collection>",
+    "Upsert": "true"
+}
+
+lookup_df = lookup_df.coalesce(1)
+# Write to Cosmos DB from the flights DataFrame
+lookup_df.write.format("com.microsoft.azure.cosmosdb.spark").mode("overwrite").options(**writeConfig).save()
+
