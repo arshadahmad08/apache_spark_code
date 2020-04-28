@@ -1,0 +1,38 @@
+
+#---------------spark settings -------------------------
+
+%spark2.pyspark
+from os.path import expanduser, join, abspath
+from pyspark import SparkContext, SparkConf
+from pyspark.sql import SparkSession, HiveContext
+from pyspark.sql import Row
+spark = SparkSession.builder.appName("cosmos_upsert_poc").enableHiveSupport().getOrCreate()
+
+
+#--------------Connection from cosmos db ---------------------
+# Base Configuration
+cosmosconfig = {
+"Endpoint" : "<your_uri>",
+"Masterkey" : "<your_key>",
+"Database" : "<cosmosdb>",
+"preferredRegions" : "South Central US;North Central US",
+"Collection" : "<collection_name>",
+"query_custom" : "SELECT * FROM c"
+}
+
+
+# Connect via Spark connector to create Spark DataFrame
+cosmos_df = spark.read.format("com.microsoft.azure.cosmosdb.spark").options(**cosmosconfig).load()
+
+#-----------------write data to cosmos :-------------------
+# Write configuration
+writeConfig = {
+    "Endpoint": "<uri>",
+    "Masterkey": "<key>",
+    "Database": "<cosmosdb>",
+    "Collection": "<collection>",
+    "Upsert": "true"
+}
+
+# Write to Cosmos DB
+cosmos_df.write.format("com.microsoft.azure.cosmosdb.spark").mode("overwrite").options(**writeConfig).save()
