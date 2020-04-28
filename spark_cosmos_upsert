@@ -49,6 +49,6 @@ writeConfig = {
 }
 
 lookup_df = lookup_df.coalesce(1)
-# Write to Cosmos DB from the flights DataFrame
+# Write to Cosmos DB
 lookup_df.write.format("com.microsoft.azure.cosmosdb.spark").mode("overwrite").options(**writeConfig).save()
 
