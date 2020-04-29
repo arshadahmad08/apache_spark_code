@@ -1,0 +1,39 @@
+import org.apache.spark.sql.hive.HiveContext;
+import org.apache.spark.SparkConf;
+import org.apache.spark.sql._
+import org.apache.spark.SparkContext
+
+object employee_ingestion {
+  def main(args: Array[String]) : Unit  =  {
+    
+ // first of all we need to initialize the spark context and then hive context , as we are loading data directly to hive table.
+    val sc = new SparkContext("local", "employee", new SparkConf)
+    val hivecontext = new org.apache.spark.sql.hive.HiveContext(sc)
+    
+          val oracle_driver = "oracle.jdbc.driver.OracleDriver"
+          val emp_query = s"""(select * from employee) alias_emp""" 
+          val db_url ="url_connection_details"
+  
+    /*
+     * setting the oracle_driver properties
+     */
+         
+       val mprop = new java.util.Properties()
+       mprop.put("user", "username")
+       mprop.put("password", "password")
+       mprop.put("driver", oracle_driver)
+           
+    try
+    {   
+    // read.jdbc is a method to connect to database and get all the data to a spark dataframe.
+     val emp_df = hivecontext.read.jdbc(db_url,emp_query, mprop)  
+     emp_df.registerTempTable("emp_df")      
+     hivecontext.sql("insert overwrite table database.employee partition (dt='2020-04-28') select * from emp_df");
+    
+    }  
+  catch {
+           case e: Exception => {
+                   e.printStackTrace();
+} }
+    sc.stop();               
+  }}
