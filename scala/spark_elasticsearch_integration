@@ -1,0 +1,34 @@
+import java.io.IOException
+import org.apache.spark.sql._
+import org.apache.spark._
+import org.elasticsearch.spark._
+import org.elasticsearch.spark.sql._
+
+object spark_elasticsearch_integration {
+
+  def main(args : Array[String]) {
+    val spark = SparkSession.builder().appName("elasticsearch_ingestion").enableHiveSupport().getOrCreate()
+    try {
+
+      import spark.implicits._
+        val df = spark.read.format("org.elasticsearch.spark.sql")
+          .option("es.nodes", <Host>)
+          .option("es.nodes.wan.only", "true")
+          .option("es.read.field.as.array.include", "tags")
+          .option("es.input.max.docs.per.partition", <max_docs>)
+          .option("es.read.metadata", "true")
+          .option("es.scroll.size",<scroll_size>)
+          .load(index_nm)
+        df.write.mode(SaveMode.Overwrite).parquet(<path to save data>)
+    }
+    catch {
+      case e: Exception => throw new Exception(" The job got failed due to : => " + e.getMessage)
+    }
+
+    finally {
+      spark.stop()
+
+    }
+  }
+
+}
