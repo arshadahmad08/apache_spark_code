@@ -21,7 +21,7 @@ cosmosconfig = {
 }
 
 
-# Connect via Spark connector to create Spark DataFrame
+# connector to create Spark df
 cosmos_df = spark.read.format("com.microsoft.azure.cosmosdb.spark").options(**cosmosconfig).load()
 
 #-----------------write data to cosmos :-------------------
